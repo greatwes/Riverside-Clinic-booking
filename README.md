@@ -176,3 +176,15 @@ pg-mem quirks this works around.
 
 That's the whole chain: Vercel (frontend) → Render (API) → Neon/Supabase
 (Postgres), all free-tier, all HTTPS.
+
+### Live deployment
+
+This repo is deployed following the steps above:
+
+- **Frontend:** https://riverside-clinic.vercel.app
+- **Backend API:** https://riverside-clinic-api.onrender.com
+- **Database:** Neon project `riverside-clinic`
+
+The full chain has been smoke-tested end to end in production (create a
+booking through the UI, confirm it round-trips through the API to Postgres,
+then cancel it).
