@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riverside Clinic: Book an Appointment</title>
+    <meta
+      name="description"
+      content="Book, review, and manage your appointment at Riverside Clinic online."
+    />
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      // Applied before paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme =
+            stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {
+          /* localStorage unavailable; fall back to the stylesheet's prefers-color-scheme default */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="#top" class="brand">
+          <svg width="38" height="38" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36">
+                <stop offset="0" stop-color="#0066b3" />
+                <stop offset="1" stop-color="#00a86b" />
+              </linearGradient>
+            </defs>
+            <circle cx="18" cy="18" r="17" fill="url(#logoGrad)" />
+            <path d="M18 9v18M9 18h18" stroke="white" stroke-width="3.2" stroke-linecap="round" />
+          </svg>
+          <span class="brand-text">
+            <span class="brand-name">Riverside</span>
+            <span class="brand-sub">CLINIC</span>
+          </span>
+        </a>
+
+        <div class="header-actions">
+          <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false">
+            <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="2" />
+              <path
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"
+              />
+            </svg>
+            <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M20.4 14.7A8.5 8.5 0 0 1 9.3 3.6a8.5 8.5 0 1 0 11.1 11.1Z"
+              />
+            </svg>
+          </button>
+          <script>
+            // Keeps the button's accessible name correct from first paint,
+            // matching whatever theme the <head> script just applied.
+            // Without this it would always announce "Switch to dark theme"
+            // even when the page actually loaded in dark mode.
+            (function () {
+              var btn = document.currentScript.previousElementSibling;
+              var isDark = document.documentElement.getAttribute("data-theme") === "dark";
+              btn.setAttribute("aria-pressed", String(isDark));
+              btn.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
+            })();
+          </script>
+        </div>
+
+        <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox" />
+        <label for="nav-toggle" class="hamburger" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </label>
+
+        <nav class="main-nav">
+          <a href="#how-it-works">How it works</a>
+          <a href="#doctors-section">Our doctors</a>
+          <a href="#faq-heading">FAQ</a>
+          <a href="#lookup-section" class="btn btn-secondary btn-small">My bookings</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow-pill"><span aria-hidden="true">&#128197;</span> Book in minutes</span>
+            <p class="hero-kicker">Welcome to</p>
+            <h1 class="hero-title">Riverside Clinic</h1>
+            <p class="hero-subtitle">
+              Book your appointment online, get an instant confirmation, and manage it
+              anytime, with no phone calls and no waiting room queue.
+            </p>
+
+            <div class="hero-ctas">
+              <button type="button" class="cta-card cta-card-primary open-booking-dialog">
+                <span class="cta-icon" aria-hidden="true">&#128197;</span>
+                <span class="cta-copy">
+                  <strong>Book an appointment</strong>
+                  <span>Pick a doctor and a time that works for you</span>
+                </span>
+                <span class="cta-arrow" aria-hidden="true">&#8594;</span>
+              </button>
+              <a href="#lookup-section" class="cta-card cta-card-secondary">
+                <span class="cta-icon" aria-hidden="true">&#128269;</span>
+                <span class="cta-copy">
+                  <strong>Manage a booking</strong>
+                  <span>Look up, review, or cancel an appointment</span>
+                </span>
+                <span class="cta-arrow" aria-hidden="true">&#8594;</span>
+              </a>
+            </div>
+
+            <p class="hero-note">
+              Already booked? <a href="#lookup-section">View your appointment</a>
+            </p>
+          </div>
+
+          <div class="hero-art">
+            <div class="hero-art-blob" aria-hidden="true"></div>
+            <img
+              class="hero-photo"
+              src="https://images.unsplash.com/photo-1666886573681-a8fbe983a3fd?w=640&h=640&fit=crop&crop=faces&q=80&auto=format"
+              alt="Doctor listening through a stethoscope"
+              width="640"
+              height="640"
+              loading="eager"
+            />
+            <span class="hero-badge" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="11" fill="var(--color-accent-surface)" />
+                <path d="M7 12.5l3 3 7-7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="steps-section container" id="how-it-works" aria-labelledby="steps-heading">
+        <h2 id="steps-heading">How it works</h2>
+        <p class="section-subtitle">Book your appointment in three simple steps.</p>
+        <ol class="steps-list">
+          <li class="step-card">
+            <span class="step-num">1</span>
+            <span class="step-icon" aria-hidden="true">&#128197;</span>
+            <h3>Pick a doctor &amp; time</h3>
+            <p>Browse open slots by provider and choose one that suits you.</p>
+          </li>
+          <li class="step-card">
+            <span class="step-num">2</span>
+            <span class="step-icon" aria-hidden="true">&#128221;</span>
+            <h3>Enter your details</h3>
+            <p>Give us your name and email so we know who's coming in.</p>
+          </li>
+          <li class="step-card">
+            <span class="step-num">3</span>
+            <span class="step-icon" aria-hidden="true">&#9989;</span>
+            <h3>Get instant confirmation</h3>
+            <p>Your booking is confirmed immediately, with no back and forth.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="doctors-section container" id="doctors-section" aria-labelledby="doctors-heading">
+        <p class="eyebrow">OUR DOCTORS</p>
+        <h2 id="doctors-heading">Meet our care team</h2>
+        <p class="section-subtitle">
+          Every doctor below keeps their own live schedule, so pick one to jump straight
+          to their open slots.
+        </p>
+
+        <div class="doctor-grid">
+          <article class="doctor-card">
+            <div class="doctor-avatar">
+              <img
+                src="https://images.unsplash.com/photo-1666887360742-974c8fce8e6b?w=320&h=320&fit=crop&crop=faces&q=80&auto=format"
+                alt="Portrait of Dr Ade"
+                width="320"
+                height="320"
+                loading="lazy"
+              />
+            </div>
+            <h3>Dr Ade</h3>
+            <p class="doctor-specialty">General Practice</p>
+            <p class="doctor-bio">Everyday checkups, prescriptions, and referrals.</p>
+            <button type="button" class="btn btn-primary doctor-book-btn" data-provider="Dr Ade">
+              Book with Dr Ade
+            </button>
+          </article>
+
+          <article class="doctor-card">
+            <div class="doctor-avatar">
+              <img
+                src="https://images.unsplash.com/photo-1678695972687-033fa0bdbac9?w=320&h=320&fit=crop&crop=faces&q=80&auto=format"
+                alt="Portrait of Dr Chidinma"
+                width="320"
+                height="320"
+                loading="lazy"
+              />
+            </div>
+            <h3>Dr Chidinma</h3>
+            <p class="doctor-specialty">Paediatrics</p>
+            <p class="doctor-bio">Gentle, friendly care for infants through teens.</p>
+            <button type="button" class="btn btn-primary doctor-book-btn" data-provider="Dr Chidinma">
+              Book with Dr Chidinma
+            </button>
+          </article>
+
+          <article class="doctor-card">
+            <div class="doctor-avatar">
+              <img
+                src="https://images.unsplash.com/photo-1666887360445-e3b7bba7917c?w=320&h=320&fit=crop&crop=faces&q=80&auto=format"
+                alt="Portrait of Dr Musa"
+                width="320"
+                height="320"
+                loading="lazy"
+              />
+            </div>
+            <h3>Dr Musa</h3>
+            <p class="doctor-specialty">Internal Medicine</p>
+            <p class="doctor-bio">Chronic conditions, diagnostics, and ongoing care.</p>
+            <button type="button" class="btn btn-primary doctor-book-btn" data-provider="Dr Musa">
+              Book with Dr Musa
+            </button>
+          </article>
+
+          <article class="doctor-card">
+            <div class="doctor-avatar">
+              <img
+                src="https://images.unsplash.com/photo-1643297654397-97b3201abc7c?w=320&h=320&fit=crop&crop=faces&q=80&auto=format"
+                alt="Portrait of Dr Ngozi"
+                width="320"
+                height="320"
+                loading="lazy"
+              />
+            </div>
+            <h3>Dr Ngozi</h3>
+            <p class="doctor-specialty">Obstetrics &amp; Gynaecology</p>
+            <p class="doctor-bio">Pregnancy care, women's health, and family planning.</p>
+            <button type="button" class="btn btn-primary doctor-book-btn" data-provider="Dr Ngozi">
+              Book with Dr Ngozi
+            </button>
+          </article>
+
+          <article class="doctor-card">
+            <div class="doctor-avatar">
+              <img
+                src="https://images.unsplash.com/photo-1672655412906-8e10ba6ee373?w=320&h=320&fit=crop&crop=faces&q=80&auto=format"
+                alt="Portrait of Dr Tunde"
+                width="320"
+                height="320"
+                loading="lazy"
+              />
+            </div>
+            <h3>Dr Tunde</h3>
+            <p class="doctor-specialty">Cardiology</p>
+            <p class="doctor-bio">Heart health checks, monitoring, and follow-up care.</p>
+            <button type="button" class="btn btn-primary doctor-book-btn" data-provider="Dr Tunde">
+              Book with Dr Tunde
+            </button>
+          </article>
+
+          <article class="doctor-card">
+            <div class="doctor-avatar">
+              <img
+                src="https://images.unsplash.com/photo-1631217871099-88310a909a32?w=320&h=320&fit=crop&crop=faces&q=80&auto=format"
+                alt="Portrait of Dr Amara"
+                width="320"
+                height="320"
+                loading="lazy"
+              />
+            </div>
+            <h3>Dr Amara</h3>
+            <p class="doctor-specialty">Dermatology</p>
+            <p class="doctor-bio">Skin, hair, and nail conditions for all ages.</p>
+            <button type="button" class="btn btn-primary doctor-book-btn" data-provider="Dr Amara">
+              Book with Dr Amara
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel-section container" id="lookup-section" aria-labelledby="lookup-heading">
+        <div class="panel">
+          <h2 id="lookup-heading">Your bookings</h2>
+          <form id="lookup-form" class="lookup-form">
+            <div class="field">
+              <label for="lookup-email">Email address</label>
+              <input type="email" id="lookup-email" name="email" required autocomplete="email" />
+            </div>
+            <button type="submit" class="btn btn-primary">View my bookings</button>
+          </form>
+
+          <div id="lookup-status" class="status-text" role="status"></div>
+          <table class="bookings-table" id="bookings-table" hidden>
+            <thead>
+              <tr>
+                <th scope="col">Booking ID</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody id="bookings-table-body"></tbody>
+          </table>
+          <button type="button" class="btn btn-secondary" id="load-more-bookings" hidden>Load more</button>
+        </div>
+      </section>
+
+      <section class="faq-section container" aria-labelledby="faq-heading">
+        <p class="eyebrow">HELP</p>
+        <h2 id="faq-heading">Frequently asked questions</h2>
+
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary>How do I book an appointment?</summary>
+            <p>
+              Select &ldquo;Book an appointment&rdquo; or any doctor's &ldquo;Book with&rdquo;
+              button, choose a doctor, pick an open date and time, then enter your name and
+              email. You'll get a confirmation with a booking ID right away, no account needed.
+            </p>
+          </details>
+          <details class="faq-item">
+            <summary>Can I cancel or change a booking?</summary>
+            <p>
+              Yes. Look yourself up by email under &ldquo;Your bookings&rdquo; and cancel
+              from there, or use the cancel button on your confirmation screen right after
+              booking. Cancelling frees the slot for someone else.
+            </p>
+          </details>
+          <details class="faq-item">
+            <summary>What if someone else books the same slot first?</summary>
+            <p>
+              Only one person can ever hold a given slot. If it's taken the moment you
+              submit, we'll tell you right away and refresh the list so you can pick
+              another time.
+            </p>
+          </details>
+          <details class="faq-item">
+            <summary>Why was my booking attempt rate limited?</summary>
+            <p>
+              To keep the system fair for everyone, each email address can attempt a
+              booking up to 5 times per minute. If you hit that limit, just wait a few
+              seconds and try again.
+            </p>
+          </details>
+          <details class="faq-item">
+            <summary>I submitted twice by accident. Was I double booked?</summary>
+            <p>
+              No. Retrying the same booking (for example after a slow connection) safely
+              returns your original confirmation instead of creating a second appointment.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <section class="help-banner">
+        <div class="container help-banner-inner">
+          <div>
+            <h2>Still need help?</h2>
+            <p>Jump back in whenever you're ready. Your slot list stays up to date.</p>
+          </div>
+          <div class="help-banner-actions">
+            <button type="button" class="btn btn-accent open-booking-dialog">Book an appointment</button>
+            <a href="#lookup-section" class="btn btn-ghost-light">View my bookings</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div class="brand brand-footer">
+          <svg width="28" height="28" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="logoGradFooter" x1="0" y1="0" x2="36" y2="36">
+                <stop offset="0" stop-color="#0066b3" />
+                <stop offset="1" stop-color="#00a86b" />
+              </linearGradient>
+            </defs>
+            <circle cx="18" cy="18" r="17" fill="url(#logoGradFooter)" />
+            <path d="M18 9v18M9 18h18" stroke="white" stroke-width="3.2" stroke-linecap="round" />
+          </svg>
+          <span class="brand-text">
+            <span class="brand-name">Riverside</span>
+            <span class="brand-sub">CLINIC</span>
+          </span>
+        </div>
+        <p>Riverside Clinic: appointment booking demo. Not a real medical provider.</p>
+        <nav class="footer-links">
+          <button type="button" class="open-booking-dialog footer-link-btn">Book an appointment</button>
+          <a href="#lookup-section">My bookings</a>
+          <a href="#faq-heading">FAQ</a>
+        </nav>
+      </div>
+    </footer>
+
+    <a href="#faq-heading" class="floating-help">Need help?</a>
+
+    <dialog id="booking-dialog" class="booking-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-header">
+        <div>
+          <p class="dialog-eyebrow">APPOINTMENT</p>
+          <h2 id="dialog-title">Choose a doctor</h2>
+        </div>
+        <button type="button" class="dialog-close" id="dialog-close-btn" aria-label="Close">
+          &times;
+        </button>
+      </div>
+
+      <div class="dialog-progress" role="tablist" aria-label="Booking steps">
+        <span class="dialog-progress-step" data-step="doctor">1. Doctor</span>
+        <span class="dialog-progress-step" data-step="datetime">2. Date &amp; time</span>
+        <span class="dialog-progress-step" data-step="details">3. Details</span>
+      </div>
+
+      <div class="dialog-body">
+        <section class="dialog-panel" data-panel="doctor">
+          <p class="dialog-hint">Tap a doctor to see their available times.</p>
+          <div id="dialog-doctor-list" class="dialog-doctor-list"></div>
+        </section>
+
+        <section class="dialog-panel" data-panel="datetime" hidden>
+          <p class="dialog-selection-summary" id="dialog-doctor-summary"></p>
+          <div id="dialog-status" class="status-text" role="status"></div>
+          <div id="dialog-date-tabs" class="date-tabs" role="tablist" aria-label="Choose a date"></div>
+          <div id="dialog-time-grid" class="time-grid" aria-label="Available times"></div>
+        </section>
+
+        <section class="dialog-panel" data-panel="details" hidden>
+          <div class="dialog-selection-summary" id="dialog-details-summary"></div>
+
+          <form id="dialog-booking-form">
+            <div class="field">
+              <label for="dialog-patient-name">Full name</label>
+              <input type="text" id="dialog-patient-name" required autocomplete="name" />
+            </div>
+
+            <div class="field">
+              <label for="dialog-patient-email">Email address</label>
+              <input type="email" id="dialog-patient-email" required autocomplete="email" />
+            </div>
+          </form>
+
+          <div id="dialog-booking-error" class="error-banner" role="alert" hidden></div>
+        </section>
+
+        <section class="dialog-panel" data-panel="confirmation" hidden>
+          <h3>Booking confirmed</h3>
+          <dl class="confirmation-details">
+            <div><dt>Booking ID</dt><dd id="dialog-conf-id"></dd></div>
+            <div><dt>Doctor</dt><dd id="dialog-conf-provider"></dd></div>
+            <div><dt>When</dt><dd id="dialog-conf-when"></dd></div>
+            <div><dt>Name</dt><dd id="dialog-conf-name"></dd></div>
+            <div><dt>Email</dt><dd id="dialog-conf-email"></dd></div>
+            <div><dt>Status</dt><dd id="dialog-conf-status"></dd></div>
+          </dl>
+          <div class="form-actions">
+            <button type="button" class="btn btn-danger" id="dialog-confirm-cancel">Cancel this booking</button>
+            <button type="button" class="btn btn-secondary" id="dialog-book-another">Book another appointment</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="dialog-footer" id="dialog-footer">
+        <button type="button" class="btn btn-secondary" id="dialog-back-btn">Back</button>
+        <button type="submit" form="dialog-booking-form" class="btn btn-primary" id="dialog-submit-btn">
+          Book this slot
+        </button>
+      </div>
+    </dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
