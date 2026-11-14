@@ -21,13 +21,19 @@ async function execRows(db: Database, query: ReturnType<typeof sql>): Promise<Re
 }
 
 function rowToBooking(row: Record<string, unknown>): BookingRow {
+  // Raw db.execute() results skip Drizzle's column mapping, and the real
+  // `pg` driver (unlike the pg-mem proxy used in tests) hands back
+  // timestamptz columns as Postgres's native text format (e.g.
+  // "2026-11-14 23:22:08.538+00"), not a parsed Date — hence the explicit
+  // `new Date(...)` instead of a same-shape cast.
+  const createdAt = row.created_at instanceof Date ? row.created_at : new Date(row.created_at as string);
   return {
     id: row.id as string,
     slotId: row.slot_id as string,
     name: row.name as string,
     email: row.email as string,
     status: row.status as "confirmed" | "cancelled",
-    createdAt: row.created_at as Date,
+    createdAt,
   };
 }
 
