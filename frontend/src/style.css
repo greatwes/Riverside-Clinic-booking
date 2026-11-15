@@ -80,29 +80,30 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
-/* Fallback for the (rare) case the inline head script couldn't run/persist a choice. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --color-bg: #0e141b;
-    --color-surface: #161f29;
-    --color-border: #2c3744;
-    --color-text: #e7ecf2;
-    --color-text-muted: #9fadbd;
-    --color-heading: #dce9f8;
-    --color-link: #5aacf2;
-    --color-accent-text: #3ddb9c;
-    --color-danger: #ff6b63;
-    --color-danger-bg: #3a1f1d;
-    --color-success-bg: #1b3326;
-    --color-success-text: #6fd98c;
-    --color-cancelled-bg: #232c35;
-    --color-cancelled-text: #9fadbd;
-    --color-hero-bg-from: #121b24;
-    --color-hero-bg-to: #0e141b;
-    --color-hero-blob: #15302a;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
-  }
+/* Fallback for the (rare) case the inline head script couldn't run/persist a
+   choice (JS disabled): the site defaults to light regardless of the OS/
+   browser color-scheme preference, so this mirrors the light theme rather
+   than reading prefers-color-scheme. */
+:root:not([data-theme]) {
+  --color-bg: #f4f8fc;
+  --color-surface: #ffffff;
+  --color-border: #dce6f0;
+  --color-text: #1c2733;
+  --color-text-muted: #5b6b7f;
+  --color-heading: #0b1f3f;
+  --color-link: #0066b3;
+  --color-accent-text: #087850;
+  --color-danger: #b3261e;
+  --color-danger-bg: #fdecea;
+  --color-success-bg: #e6f4ea;
+  --color-success-text: #1e7b34;
+  --color-cancelled-bg: #eef1f4;
+  --color-cancelled-text: #5b6572;
+  --color-hero-bg-from: #eaf3fc;
+  --color-hero-bg-to: #f6faf8;
+  --color-hero-blob: #dcefe5;
+  --shadow-sm: 0 1px 2px rgba(11, 31, 63, 0.07);
+  --shadow-md: 0 8px 24px rgba(11, 31, 63, 0.1);
 }
 
 * {
@@ -893,6 +894,10 @@ input:focus {
   gap: 6px;
 }
 
+.field[hidden] {
+  display: none;
+}
+
 .field label {
   font-size: 0.85rem;
   color: var(--color-text-muted);
@@ -936,6 +941,34 @@ input:focus {
   font-weight: 600;
   font-size: 0.92rem;
   color: var(--color-text);
+}
+
+.lookup-mode-toggle {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.lookup-mode-btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.lookup-mode-btn.active {
+  background: var(--color-navy-surface);
+  color: #fff;
 }
 
 .lookup-form {
@@ -1179,6 +1212,38 @@ input:focus {
 .booking-dialog[open] {
   display: flex;
   flex-direction: column;
+}
+
+.confirm-dialog {
+  width: min(380px, calc(100vw - 32px));
+  padding: 22px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+
+.confirm-dialog::backdrop {
+  background: rgba(8, 14, 20, 0.55);
+}
+
+.confirm-dialog h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-heading);
+  color: var(--color-heading);
+}
+
+.confirm-dialog p {
+  margin: 0 0 18px;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .dialog-header {

@@ -20,12 +20,12 @@
       // Applied before paint to avoid a flash of the wrong theme.
       (function () {
         try {
+          // Default to light regardless of OS/browser color-scheme
+          // preference; only an explicit prior choice switches to dark.
           var stored = localStorage.getItem("theme");
-          var theme =
-            stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-          document.documentElement.setAttribute("data-theme", theme);
+          document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light");
         } catch (e) {
-          /* localStorage unavailable; fall back to the stylesheet's prefers-color-scheme default */
+          /* localStorage unavailable; the stylesheet's :root:not([data-theme]) fallback is light */
         }
       })();
     </script>
@@ -299,10 +299,27 @@
       <section class="panel-section container" id="lookup-section" aria-labelledby="lookup-heading">
         <div class="panel">
           <h2 id="lookup-heading">Your bookings</h2>
+          <div class="lookup-mode-toggle" role="tablist" aria-label="Look up by">
+            <button type="button" class="lookup-mode-btn active" id="lookup-mode-email" data-mode="email" role="tab" aria-selected="true">By email</button>
+            <button type="button" class="lookup-mode-btn" id="lookup-mode-id" data-mode="id" role="tab" aria-selected="false">By booking ID</button>
+          </div>
           <form id="lookup-form" class="lookup-form">
-            <div class="field">
+            <div class="field" id="lookup-email-field">
               <label for="lookup-email">Email address</label>
-              <input type="email" id="lookup-email" name="email" required autocomplete="email" />
+              <input type="email" id="lookup-email" name="email" autocomplete="email" />
+            </div>
+            <div class="field" id="lookup-id-field" hidden>
+              <label for="lookup-id">Booking ID</label>
+              <input
+                type="text"
+                id="lookup-id"
+                name="bookingId"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                maxlength="8"
+                placeholder="e.g. 7K3F9QZP"
+              />
             </div>
             <button type="submit" class="btn btn-primary">View my bookings</button>
           </form>
@@ -312,8 +329,9 @@
             <thead>
               <tr>
                 <th scope="col">Booking ID</th>
+                <th scope="col">Doctor</th>
+                <th scope="col">Appointment</th>
                 <th scope="col">Status</th>
-                <th scope="col">Created</th>
                 <th scope="col"></th>
               </tr>
             </thead>
@@ -412,6 +430,15 @@
     </footer>
 
     <a href="#faq-heading" class="floating-help">Need help?</a>
+
+    <dialog id="confirm-cancel-dialog" class="confirm-dialog" aria-labelledby="confirm-cancel-title">
+      <h3 id="confirm-cancel-title">Cancel this booking?</h3>
+      <p>This frees up the slot for someone else and can't be undone.</p>
+      <div class="confirm-dialog-actions">
+        <button type="button" class="btn btn-secondary" id="confirm-cancel-no">Keep booking</button>
+        <button type="button" class="btn btn-danger" id="confirm-cancel-yes">Yes, cancel it</button>
+      </div>
+    </dialog>
 
     <dialog id="booking-dialog" class="booking-dialog" aria-labelledby="dialog-title">
       <div class="dialog-header">

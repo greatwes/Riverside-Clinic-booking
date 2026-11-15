@@ -16,6 +16,9 @@ export interface Booking {
   email: string;
   status: "confirmed" | "cancelled";
   created_at: string;
+  provider?: string;
+  appointment_start?: string;
+  appointment_end?: string;
 }
 
 export class ApiError extends Error {

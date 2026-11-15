@@ -91,7 +91,7 @@ async function processBooking(db: Database, rawBody: unknown): Promise<Outcome> 
     return { status: 400, body: { error: "slot has already started" } };
   }
 
-  const bookingId = newId("bk");
+  const bookingId = newId();
   const createdAt = new Date();
 
   try {
@@ -117,7 +117,7 @@ async function processBooking(db: Database, rawBody: unknown): Promise<Outcome> 
       `,
     );
 
-    return { status: 201, body: serializeBooking(rowToBooking(rows[0])) };
+    return { status: 201, body: serializeBooking(rowToBooking(rows[0]), slot) };
   } catch (err) {
     if (isUniqueViolation(err)) {
       return { status: 409, body: { error: "slot already booked" } };
@@ -225,20 +225,22 @@ bookingsRouter.get("/bookings", async (req, res) => {
   }
 
   const rows = await db
-    .select()
+    .select({ booking: bookings, slot: slots })
     .from(bookings)
+    .leftJoin(slots, eq(bookings.slotId, slots.id))
     .where(cursorCondition ? and(eq(bookings.email, email), cursorCondition) : eq(bookings.email, email))
     .orderBy(asc(bookings.createdAt), asc(bookings.id))
     .limit(limit + 1);
 
   const hasMore = rows.length > limit;
   const page = hasMore ? rows.slice(0, limit) : rows;
+  const last = page[page.length - 1];
   const nextCursor = hasMore
-    ? encodeCursor({ createdAt: page[page.length - 1].createdAt.toISOString(), id: page[page.length - 1].id })
+    ? encodeCursor({ createdAt: last.booking.createdAt.toISOString(), id: last.booking.id })
     : null;
 
   res.status(200).json({
-    bookings: page.map(serializeBooking),
+    bookings: page.map(({ booking, slot }) => serializeBooking(booking, slot ?? undefined)),
     next_cursor: nextCursor,
   });
 });
@@ -250,7 +252,8 @@ bookingsRouter.get("/bookings/:id", async (req, res) => {
     res.status(404).json({ error: "no booking with that id" });
     return;
   }
-  res.status(200).json(serializeBooking(booking));
+  const slot = await findSlotById(db, booking.slotId);
+  res.status(200).json(serializeBooking(booking, slot));
 });
 
 bookingsRouter.delete("/bookings/:id", async (req, res) => {
@@ -293,5 +296,6 @@ bookingsRouter.delete("/bookings/:id", async (req, res) => {
     return;
   }
 
-  res.status(200).json(serializeBooking(rowToBooking(rows[0])));
+  const slot = await findSlotById(db, booking.slotId);
+  res.status(200).json(serializeBooking(rowToBooking(rows[0]), slot));
 });

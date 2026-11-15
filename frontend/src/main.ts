@@ -3,6 +3,7 @@ import {
   ApiError,
   cancelBooking,
   createBooking,
+  getBooking,
   listBookings,
   listSlots,
   type Booking,
@@ -25,11 +26,15 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
 const dayLabelFormatter = new Intl.DateTimeFormat(undefined, { weekday: "short" });
 const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
 
-function formatSlotTime(slot: Slot): string {
-  return `${dateFormatter.format(new Date(slot.start))} – ${new Date(slot.end).toLocaleTimeString(
+function formatRange(startIso: string, endIso: string): string {
+  return `${dateFormatter.format(new Date(startIso))} – ${new Date(endIso).toLocaleTimeString(
     undefined,
     { hour: "numeric", minute: "2-digit" },
   )}`;
+}
+
+function formatSlotTime(slot: Slot): string {
+  return formatRange(slot.start, slot.end);
 }
 
 /** Local calendar-day key (YYYY-MM-DD) for grouping slots by date, independent of time-of-day. */
@@ -63,6 +68,48 @@ function escapeHtml(value: string): string {
   const div = document.createElement("div");
   div.textContent = value;
   return div.innerHTML;
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared second-confirmation dialog, used before any cancellation.    */
+/* ------------------------------------------------------------------ */
+
+const confirmCancelDialog = byId<HTMLDialogElement>("confirm-cancel-dialog");
+const confirmCancelYesBtn = byId<HTMLButtonElement>("confirm-cancel-yes");
+const confirmCancelNoBtn = byId<HTMLButtonElement>("confirm-cancel-no");
+
+confirmCancelDialog.addEventListener("click", (event) => {
+  if (event.target === confirmCancelDialog) confirmCancelDialog.close();
+});
+
+function confirmCancellation(): Promise<boolean> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const settle = (result: boolean) => {
+      if (settled) return;
+      settled = true;
+      confirmCancelYesBtn.removeEventListener("click", onYes);
+      confirmCancelNoBtn.removeEventListener("click", onNo);
+      confirmCancelDialog.removeEventListener("close", onClose);
+      resolve(result);
+    };
+    function onYes() {
+      settle(true);
+      confirmCancelDialog.close();
+    }
+    function onNo() {
+      settle(false);
+      confirmCancelDialog.close();
+    }
+    function onClose() {
+      // Covers Escape / backdrop-click closes that didn't go through a button.
+      settle(false);
+    }
+    confirmCancelYesBtn.addEventListener("click", onYes);
+    confirmCancelNoBtn.addEventListener("click", onNo);
+    confirmCancelDialog.addEventListener("close", onClose);
+    confirmCancelDialog.showModal();
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -287,6 +334,7 @@ function showDialogConfirmation(booking: Booking, slot: Slot) {
 dialogConfirmCancelBtn.addEventListener("click", async () => {
   const id = dialogConfirmCancelBtn.dataset.bookingId;
   if (!id) return;
+  if (!(await confirmCancellation())) return;
   dialogConfirmCancelBtn.disabled = true;
   try {
     const cancelled = await cancelBooking(id);
@@ -391,24 +439,86 @@ if (themeToggle) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Lookup an existing patient's bookings                               */
+/* Lookup an existing patient's bookings, by email or by booking ID.  */
 /* ------------------------------------------------------------------ */
 
 const lookupForm = byId<HTMLFormElement>("lookup-form");
 const lookupEmailInput = byId<HTMLInputElement>("lookup-email");
+const lookupIdInput = byId<HTMLInputElement>("lookup-id");
+const lookupEmailField = byId<HTMLDivElement>("lookup-email-field");
+const lookupIdField = byId<HTMLDivElement>("lookup-id-field");
+const lookupModeEmailBtn = byId<HTMLButtonElement>("lookup-mode-email");
+const lookupModeIdBtn = byId<HTMLButtonElement>("lookup-mode-id");
 const lookupStatus = byId<HTMLDivElement>("lookup-status");
 const bookingsTable = byId<HTMLTableElement>("bookings-table");
 const bookingsTableBody = byId<HTMLTableSectionElement>("bookings-table-body");
 const loadMoreBtn = byId<HTMLButtonElement>("load-more-bookings");
 
+type LookupMode = "email" | "id";
+let lookupMode: LookupMode = "email";
 let lookupEmail = "";
 let lookupCursor: string | null = null;
 
+function setLookupMode(mode: LookupMode) {
+  lookupMode = mode;
+  lookupModeEmailBtn.classList.toggle("active", mode === "email");
+  lookupModeEmailBtn.setAttribute("aria-selected", String(mode === "email"));
+  lookupModeIdBtn.classList.toggle("active", mode === "id");
+  lookupModeIdBtn.setAttribute("aria-selected", String(mode === "id"));
+  lookupEmailField.hidden = mode !== "email";
+  lookupIdField.hidden = mode !== "id";
+  lookupStatus.textContent = "";
+  bookingsTable.hidden = true;
+  bookingsTableBody.innerHTML = "";
+  loadMoreBtn.hidden = true;
+}
+
+lookupModeEmailBtn.addEventListener("click", () => setLookupMode("email"));
+lookupModeIdBtn.addEventListener("click", () => setLookupMode("id"));
+
+// Booking IDs are generated all-caps; normalize as the user types so a
+// lowercase paste still matches.
+lookupIdInput.addEventListener("input", () => {
+  const caret = lookupIdInput.selectionStart;
+  lookupIdInput.value = lookupIdInput.value.toUpperCase();
+  if (caret !== null) lookupIdInput.setSelectionRange(caret, caret);
+});
+
 lookupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  bookingsTableBody.innerHTML = "";
+  loadMoreBtn.hidden = true;
+
+  if (lookupMode === "id") {
+    const id = lookupIdInput.value.trim().toUpperCase();
+    if (!id) {
+      bookingsTable.hidden = true;
+      lookupStatus.textContent = "Enter a booking ID.";
+      return;
+    }
+    lookupStatus.textContent = "Loading…";
+    try {
+      const booking = await getBooking(id);
+      bookingsTable.hidden = false;
+      lookupStatus.textContent = "";
+      bookingsTableBody.appendChild(renderBookingRow(booking));
+    } catch (err) {
+      bookingsTable.hidden = true;
+      lookupStatus.textContent =
+        err instanceof ApiError && err.status === 404
+          ? "No booking found with that ID."
+          : describeError(err);
+    }
+    return;
+  }
+
   lookupEmail = lookupEmailInput.value.trim();
   lookupCursor = null;
-  bookingsTableBody.innerHTML = "";
+  if (!lookupEmail) {
+    bookingsTable.hidden = true;
+    lookupStatus.textContent = "Enter an email address.";
+    return;
+  }
   await loadBookingsPage();
 });
 
@@ -443,22 +553,29 @@ function renderBookingRow(booking: Booking): HTMLTableRowElement {
   const idCell = document.createElement("td");
   idCell.textContent = booking.id;
 
+  const doctorCell = document.createElement("td");
+  doctorCell.textContent = booking.provider ?? "—";
+
+  const whenCell = document.createElement("td");
+  whenCell.textContent =
+    booking.appointment_start && booking.appointment_end
+      ? formatRange(booking.appointment_start, booking.appointment_end)
+      : "—";
+
   const statusCell = document.createElement("td");
   const badge = document.createElement("span");
   badge.className = `status-badge status-${booking.status}`;
   badge.textContent = booking.status;
   statusCell.appendChild(badge);
 
-  const createdCell = document.createElement("td");
-  createdCell.textContent = new Date(booking.created_at).toLocaleString();
-
   const actionCell = document.createElement("td");
   if (booking.status === "confirmed") {
     const cancelBtn = document.createElement("button");
     cancelBtn.type = "button";
-    cancelBtn.className = "btn btn-text btn-small";
+    cancelBtn.className = "btn btn-danger btn-small";
     cancelBtn.textContent = "Cancel";
     cancelBtn.addEventListener("click", async () => {
+      if (!(await confirmCancellation())) return;
       cancelBtn.disabled = true;
       try {
         const updated = await cancelBooking(booking.id);
@@ -473,6 +590,6 @@ function renderBookingRow(booking: Booking): HTMLTableRowElement {
     actionCell.appendChild(cancelBtn);
   }
 
-  row.append(idCell, statusCell, createdCell, actionCell);
+  row.append(idCell, doctorCell, whenCell, statusCell, actionCell);
   return row;
 }

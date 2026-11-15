@@ -7,7 +7,13 @@ export interface BookingRow {
   createdAt: Date;
 }
 
-export function serializeBooking(row: BookingRow) {
+export interface SlotSummary {
+  provider: string;
+  start: Date;
+  end: Date;
+}
+
+export function serializeBooking(row: BookingRow, slot?: SlotSummary) {
   return {
     id: row.id,
     slot_id: row.slotId,
@@ -15,5 +21,12 @@ export function serializeBooking(row: BookingRow) {
     email: row.email,
     status: row.status,
     created_at: row.createdAt.toISOString(),
+    ...(slot
+      ? {
+          provider: slot.provider,
+          appointment_start: slot.start.toISOString(),
+          appointment_end: slot.end.toISOString(),
+        }
+      : {}),
   };
 }
