@@ -181,7 +181,7 @@ That's the whole chain: Vercel (frontend) → Render (API) → Neon/Supabase
 
 This repo is deployed following the steps above:
 
-- **Frontend:** https://riverside-clinic.vercel.app
+- **Frontend:** https://riversideclinic.vercel.app
 - **Backend API:** https://riverside-clinic-api.onrender.com
 - **Database:** Neon project `riverside-clinic`
 
